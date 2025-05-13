@@ -1,9 +1,13 @@
 <?php
 
+header('Content-Type: application/json');
+
 // This MUST be called before any output.
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+
+
 
 require_once __DIR__ . '/../../db/config.php';
 
@@ -11,7 +15,6 @@ require_once __DIR__ . '/../../db/config.php';
 // --- Helper Function to Send JSON Responses ---
 function sendJsonResponse($statusCode, $data) {
     http_response_code($statusCode);
-    header('Content-Type: application/json');
     echo json_encode($data);
     exit;
 }

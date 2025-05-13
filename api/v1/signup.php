@@ -1,4 +1,8 @@
 <?php
+
+header('Content-Type: application/json');
+
+
 require_once __DIR__ . '/../../db/config.php';
 
 // --- Start Session ---
@@ -7,17 +11,13 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// --- Database Configuration ---
-$db_host = 'localhost';
-$db_port = '3306';
-$db_name = 'project';
-$db_user = 'root';
-$db_pass = '';
+
+
+
 
 // --- Helper Function to Send JSON Responses ---
 function sendJsonResponse($statusCode, $data) {
     http_response_code($statusCode);
-    header('Content-Type: application/json');
     echo json_encode($data);
     exit;
 }

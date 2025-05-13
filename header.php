@@ -121,7 +121,7 @@ if ($is_logged_in && isset($_SESSION['first_name'])) {
                                 <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
                             </svg>
                         </button>
-                        <div id="userDropdownMenuMobile" class="user-dropdown-menu left-1/2 transform -translate-x-1/2 mt-1 w-auto"> {/* Centered dropdown */}
+                        <div id="userDropdownMenuMobile" class="user-dropdown-menu left-1/2 transform -translate-x-1/2 mt-1 w-auto"> 
                             <a href="profile.php" class="rounded-t-md">Profile</a>
                             <a href="logout.php" class="rounded-b-md">Log out</a>
                         </div>
