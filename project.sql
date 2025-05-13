@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 12, 2025 at 10:13 PM
--- Server version: 10.4.27-MariaDB
--- PHP Version: 8.2.0
+-- Generation Time: May 13, 2025 at 03:18 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -99,6 +99,19 @@ CREATE TABLE `courses` (
   `department` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `courses`
+--
+
+INSERT INTO `courses` (`course_code`, `course_title`, `attendance_required`, `department`) VALUES
+('BIO 301', 'Molecular Biology', 1, 'BIOLOGY'),
+('CHEM 301', 'Organic Chemistry', 1, 'CHEMISTRY'),
+('CS 202', 'Data Structures & Algorithms', 1, 'COMPUTER SCIENCE'),
+('HIST 101', 'World History: 1500-Present', 1, 'HISTORY'),
+('MATH 201', 'Calculus II', 1, 'MATHEMATICS'),
+('PHYS 401', 'Quantum Physics', 1, 'PHYSICS'),
+('PSYC 202', 'Cognitive Psychology', 1, 'PSYCHOLOGY');
+
 -- --------------------------------------------------------
 
 --
@@ -186,7 +199,7 @@ CREATE TABLE `course_note_user_ratings` (
   `user_id` int(11) NOT NULL,
   `rating_value` tinyint(4) NOT NULL,
   `rated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -365,7 +378,7 @@ CREATE TABLE `marketplace_item_images` (
 CREATE TABLE `study_groups` (
   `group_id` int(11) NOT NULL,
   `leader_id` int(11) NOT NULL,
-  `major_focus` enum('Mathematics','Chemistry','Physics','Computer Science','Engineering','Biology','Literature','History','Business','General','Other') NOT NULL,
+  `course_code` varchar(20) NOT NULL,
   `title` varchar(255) NOT NULL,
   `description` text NOT NULL,
   `max_members` int(11) DEFAULT NULL,
@@ -434,6 +447,13 @@ CREATE TABLE `users` (
   `date_of_birth` date DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `email`, `password_hash`, `university_id`, `major`, `academic_level`, `date_of_birth`, `created_at`) VALUES
+(2, 'Adnan', 'Sarhan', '202008997@stu.uob.edu.bh', '$2y$10$nvR9cyjljEZQKbOBVhVZNu64TlcK46wefBHrxLJo/IB7A6PL5s3kK', '202008997', 'Software Engineering', 'Freshman', '2002-10-11', '2025-05-12 23:27:44');
 
 --
 -- Indexes for dumped tables
@@ -610,7 +630,8 @@ ALTER TABLE `marketplace_item_images`
 --
 ALTER TABLE `study_groups`
   ADD PRIMARY KEY (`group_id`),
-  ADD KEY `leader_id` (`leader_id`);
+  ADD KEY `leader_id` (`leader_id`),
+  ADD KEY `fk_study_group_course` (`course_code`);
 
 --
 -- Indexes for table `study_group_comments`
@@ -802,7 +823,7 @@ ALTER TABLE `study_group_members`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables
@@ -951,6 +972,7 @@ ALTER TABLE `marketplace_item_images`
 -- Constraints for table `study_groups`
 --
 ALTER TABLE `study_groups`
+  ADD CONSTRAINT `fk_study_group_course` FOREIGN KEY (`course_code`) REFERENCES `courses` (`course_code`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `study_groups_ibfk_1` FOREIGN KEY (`leader_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
