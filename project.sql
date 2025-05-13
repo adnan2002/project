@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 12, 2025 at 10:13 PM
+-- Generation Time: May 13, 2025 at 09:34 PM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.2.0
 
@@ -99,6 +99,21 @@ CREATE TABLE `courses` (
   `department` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `courses`
+--
+
+INSERT INTO `courses` (`course_code`, `course_title`, `attendance_required`, `department`) VALUES
+('BIO 301', 'Molecular Biology', 1, 'BIOLOGY'),
+('CHEM 301', 'Organic Chemistry', 1, 'CHEMISTRY'),
+('CS 102', 'JAVA 2 Programming', 1, 'Computer Science'),
+('CS 103', 'JAVA 2 Programming', 1, 'Computer Science'),
+('CS 202', 'Data Structures & Algorithms', 1, 'COMPUTER SCIENCE'),
+('HIST 101', 'World History: 1500-Present', 1, 'HISTORY'),
+('MATH 201', 'Calculus II', 1, 'MATHEMATICS'),
+('PHYS 401', 'Quantum Physics', 1, 'PHYSICS'),
+('PSYC 202', 'Cognitive Psychology', 1, 'PSYCHOLOGY');
+
 -- --------------------------------------------------------
 
 --
@@ -186,7 +201,7 @@ CREATE TABLE `course_note_user_ratings` (
   `user_id` int(11) NOT NULL,
   `rating_value` tinyint(4) NOT NULL,
   `rated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -365,7 +380,7 @@ CREATE TABLE `marketplace_item_images` (
 CREATE TABLE `study_groups` (
   `group_id` int(11) NOT NULL,
   `leader_id` int(11) NOT NULL,
-  `major_focus` enum('Mathematics','Chemistry','Physics','Computer Science','Engineering','Biology','Literature','History','Business','General','Other') NOT NULL,
+  `course_code` varchar(20) NOT NULL,
   `title` varchar(255) NOT NULL,
   `description` text NOT NULL,
   `max_members` int(11) DEFAULT NULL,
@@ -375,6 +390,21 @@ CREATE TABLE `study_groups` (
   `location` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `study_groups`
+--
+
+INSERT INTO `study_groups` (`group_id`, `leader_id`, `course_code`, `title`, `description`, `max_members`, `start_time`, `end_time`, `day_schedule`, `location`, `created_at`) VALUES
+(1, 2, 'MATH 201', 'Calculus II Study Group', 'Join us to master derivatives, integrals, and series. This study group is perfect for students currently enrolled in MATH 201 (Calculus II). We focus on solving practice problems, explaining difficult concepts, and preparing for exams together.\n\nAll skill levels are welcome! We believe in collaborative learning and helping each other succeed. Bring your textbooks, questions, and a positive attitude.', 20, '15:00:00', '17:00:00', 'Every Monday', 'Library, Room 204 (2nd Floor, North Wing)', '2024-05-10 07:00:00'),
+(2, 2, 'CS 202', 'Data Structures & Algorithms Practice', 'Weekly sessions to tackle Data Structures and Algorithms problems. Focus on whiteboarding, Big O analysis, and common interview patterns. Ideal for CS 202 students aiming for a deeper understanding and for those preparing for technical interviews. We will cover topics like arrays, linked lists, trees, graphs, sorting, and searching algorithms.', 15, '16:00:00', '18:00:00', 'Every Tuesday', 'CS Department, Lab 3B', '2024-05-11 08:30:00'),
+(3, 2, 'BIO 301', 'Molecular Biology Concepts Review', 'Reviewing key concepts from BIO 301 including DNA replication, transcription, translation, protein synthesis, and cellular mechanisms. We will go over lecture notes, textbook chapters, and past exam questions. Great for exam preparation and clarifying doubts.', 12, '17:30:00', '19:00:00', 'Every Wednesday', 'Biology Building, Study Room 1', '2025-05-13 02:03:11'),
+(4, 2, 'CHEM 301', 'Organic Chemistry Problem Solving', 'Dedicated sessions for solving complex organic chemistry problems, understanding reaction mechanisms, spectroscopy, and nomenclature. Suitable for CHEM 301 students looking to improve their grades and grasp challenging topics. Please bring your model kits!', 10, '14:00:00', '16:00:00', 'Every Thursday', 'Chemistry Labs, Discussion Area (Chem West, Room 112)', '2024-05-09 06:15:00'),
+(5, 2, 'PSYC 202', 'Cognitive Psychology Discussion Group', 'Join us to discuss fascinating topics from PSYC 202 like memory, perception, attention, language, and problem-solving. We will analyze case studies, review key theories, and discuss recent research. Interactive and engaging sessions designed to foster critical thinking.', 25, '13:00:00', '14:30:00', 'Every Friday', 'Psychology Department Lounge (Building C, Room 305)', '2024-05-12 11:00:00'),
+(6, 2, 'PHYS 401', 'Quantum Physics Explorers', 'Dive deep into the world of quantum mechanics. We will explore wave functions, Schrödinger\'s equation, quantum entanglement, and other core concepts of PHYS 401. Collaborative problem-solving and conceptual discussions.', 8, '10:00:00', '12:00:00', 'Every Saturday', 'Physics Building, Seminar Room A', '2024-05-13 05:00:00'),
+(7, 2, 'CS 103', 'Java 2 Study Group', 'We will study a lot of java programs', 22, '15:00:00', '16:00:00', 'Every Tuesday', 'Online', '2025-05-13 02:58:01'),
+(9, 2, 'BIO 301', '1323232', 'fewfewfewfwe', 2, '13:02:00', '14:02:00', 'Every Sunday', 'fewfewfew', '2025-05-13 14:22:56'),
+(10, 2, 'PHYS 401', 'quantum entanglement group', 'eee', NULL, '14:00:00', '15:00:00', 'Every Sunday', NULL, '2025-05-13 19:17:53');
 
 -- --------------------------------------------------------
 
@@ -390,6 +420,15 @@ CREATE TABLE `study_group_comments` (
   `helpful_count` int(11) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `study_group_comments`
+--
+
+INSERT INTO `study_group_comments` (`comment_id`, `group_id`, `user_id`, `comment_text`, `helpful_count`, `created_at`) VALUES
+(13, 7, 2, 'hello', 0, '2025-05-13 06:40:15'),
+(14, 7, 2, 'dfd', 0, '2025-05-13 06:48:30'),
+(15, 7, 3, 'wassup', 0, '2025-05-13 13:35:25');
 
 -- --------------------------------------------------------
 
@@ -416,6 +455,16 @@ CREATE TABLE `study_group_members` (
   `joined_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `study_group_members`
+--
+
+INSERT INTO `study_group_members` (`group_member_id`, `group_id`, `user_id`, `joined_at`) VALUES
+(1, 1, 2, '2025-05-13 02:08:59'),
+(3, 7, 3, '2025-05-13 13:35:37'),
+(4, 9, 2, '2025-05-13 14:22:56'),
+(5, 10, 2, '2025-05-13 19:17:53');
+
 -- --------------------------------------------------------
 
 --
@@ -434,6 +483,14 @@ CREATE TABLE `users` (
   `date_of_birth` date DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `email`, `password_hash`, `university_id`, `major`, `academic_level`, `date_of_birth`, `created_at`) VALUES
+(2, 'Adnan', 'Sarhan', '202008997@stu.uob.edu.bh', '$2y$10$nvR9cyjljEZQKbOBVhVZNu64TlcK46wefBHrxLJo/IB7A6PL5s3kK', '202008997', 'Software Engineering', 'Freshman', '2002-10-11', '2025-05-12 23:27:44'),
+(3, 'John', 'Doe', 'whatever@gmail.com', '$2y$10$3FXuiMXE5RvT6w1AOFLhZer6nBK1Ha6l9cAP/a6PAqpIOWpdoTAtu', '202108997', 'Computer Science', 'Freshman', '2002-02-02', '2025-05-13 13:35:04');
 
 --
 -- Indexes for dumped tables
@@ -610,7 +667,8 @@ ALTER TABLE `marketplace_item_images`
 --
 ALTER TABLE `study_groups`
   ADD PRIMARY KEY (`group_id`),
-  ADD KEY `leader_id` (`leader_id`);
+  ADD KEY `leader_id` (`leader_id`),
+  ADD KEY `fk_study_group_course` (`course_code`);
 
 --
 -- Indexes for table `study_group_comments`
@@ -778,31 +836,31 @@ ALTER TABLE `marketplace_item_images`
 -- AUTO_INCREMENT for table `study_groups`
 --
 ALTER TABLE `study_groups`
-  MODIFY `group_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `group_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `study_group_comments`
 --
 ALTER TABLE `study_group_comments`
-  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `study_group_comment_helpful_votes`
 --
 ALTER TABLE `study_group_comment_helpful_votes`
-  MODIFY `vote_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `vote_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `study_group_members`
 --
 ALTER TABLE `study_group_members`
-  MODIFY `group_member_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `group_member_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
@@ -951,6 +1009,7 @@ ALTER TABLE `marketplace_item_images`
 -- Constraints for table `study_groups`
 --
 ALTER TABLE `study_groups`
+  ADD CONSTRAINT `fk_study_group_course` FOREIGN KEY (`course_code`) REFERENCES `courses` (`course_code`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `study_groups_ibfk_1` FOREIGN KEY (`leader_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
