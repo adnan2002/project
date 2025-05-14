@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 13, 2025 at 09:34 PM
+-- Generation Time: May 14, 2025 at 07:44 AM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.2.0
 
@@ -222,8 +222,21 @@ CREATE TABLE `course_reviews` (
   `cons` text DEFAULT NULL,
   `advice` text DEFAULT NULL,
   `helpful_votes_count` int(11) DEFAULT 0,
+  `unhelpful_votes_count` int(11) NOT NULL DEFAULT 0 COMMENT 'Count of "No" / Not Helpful votes',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `course_reviews`
+--
+
+INSERT INTO `course_reviews` (`review_id`, `course_code`, `reviewer_id`, `difficulty_rating`, `workload_rating`, `overall_rating`, `would_take_again`, `review_text`, `pros`, `cons`, `advice`, `helpful_votes_count`, `unhelpful_votes_count`, `created_at`) VALUES
+(1, 'CS 102', 2, '3.5', '4.0', '4.5', 1, 'This Java 2 course was quite comprehensive. The professor explained concepts well, but the project deadlines were a bit tight.', 'Good practical assignments; Clear explanations of core Java concepts; Responsive professor.', 'Workload can be heavy at times, especially around project deadlines; Some advanced topics were rushed.', 'Start projects early and don\'t be afraid to ask questions during office hours. Practice coding regularly.', 0, 0, '2024-01-15 07:00:00'),
+(2, 'MATH 201', 3, '4.0', '3.5', '4.0', 1, 'Calculus II is challenging, but Prof. Adnan made it manageable. The homework was directly relevant to the exams.', 'Professor is very knowledgeable and helpful; Good examples in lectures; Fair grading.', 'Pace can be fast; Requires consistent effort to keep up.', 'Form a study group! Working through problems together helps a lot. Do all the practice problems.', 0, 0, '2024-02-20 11:30:00'),
+(3, 'HIST 101', 2, '2.5', '3.0', '3.8', 1, 'World History was interesting. Lots of reading, but the discussions were engaging. The professor is passionate.', 'Engaging lectures; Interesting reading material; Approachable professor.', 'Lots of memorization required for dates and events; Essay grading can be subjective.', 'Take good notes during lectures and keep up with the readings. Participate in discussions.', 0, 0, '2024-03-10 06:15:00'),
+(4, 'CHEM 301', 3, '4.5', '4.8', '3.2', 0, 'Organic Chemistry is notoriously difficult, and this was no exception. The professor is brilliant but sometimes hard to follow for beginners.', 'Covers a lot of material in depth.', 'Very fast-paced; Complex mechanisms require a lot of study time; Textbook is dense.', 'Stay on top of the material from day one. Use online resources and practice problems extensively. Office hours are a must.', 0, 0, '2025-04-01 08:00:00'),
+(5, 'CS 202', 2, '4.2', '4.5', '4.6', 1, 'Data Structures & Algorithms is a cornerstone CS course. It was challenging but incredibly rewarding. The professor provided excellent resources.', 'Teaches fundamental concepts very well; Prepares you for technical interviews; Interesting assignments.', 'Assignments can be very time-consuming; Some concepts are abstract and require deep thinking.', 'Master the basics before moving on. Whiteboard problems. Understand Big O notation thoroughly.', 0, 0, '2025-04-25 13:45:00'),
+(6, 'PSYC 202', 3, '3.0', '3.2', '4.2', 1, 'Cognitive Psychology was fascinating! The professor used a lot of real-world examples which made the theories easier to grasp.', 'Engaging content; Relatable examples; Thought-provoking discussions.', 'Some readings can be a bit dry; Exams require understanding concepts, not just memorization.', 'Relate the theories to your own experiences. Participate in class discussions to solidify understanding.', 0, 0, '2025-05-05 10:00:00');
 
 -- --------------------------------------------------------
 
@@ -255,13 +268,14 @@ CREATE TABLE `course_review_comment_helpful_votes` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `course_review_helpful_votes`
+-- Table structure for table `course_review_votes`
 --
 
-CREATE TABLE `course_review_helpful_votes` (
+CREATE TABLE `course_review_votes` (
   `vote_id` int(11) NOT NULL,
   `review_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL
+  `user_id` int(11) NOT NULL,
+  `result` tinyint(1) NOT NULL COMMENT 'TRUE for helpful (Yes), FALSE for not helpful (No)'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -603,9 +617,9 @@ ALTER TABLE `course_review_comment_helpful_votes`
   ADD KEY `user_id` (`user_id`);
 
 --
--- Indexes for table `course_review_helpful_votes`
+-- Indexes for table `course_review_votes`
 --
-ALTER TABLE `course_review_helpful_votes`
+ALTER TABLE `course_review_votes`
   ADD PRIMARY KEY (`vote_id`),
   ADD UNIQUE KEY `unique_review_user_vote` (`review_id`,`user_id`),
   ADD KEY `user_id` (`user_id`);
@@ -770,7 +784,7 @@ ALTER TABLE `course_note_user_ratings`
 -- AUTO_INCREMENT for table `course_reviews`
 --
 ALTER TABLE `course_reviews`
-  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `course_review_comments`
@@ -785,10 +799,10 @@ ALTER TABLE `course_review_comment_helpful_votes`
   MODIFY `vote_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `course_review_helpful_votes`
+-- AUTO_INCREMENT for table `course_review_votes`
 --
-ALTER TABLE `course_review_helpful_votes`
-  MODIFY `vote_id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `course_review_votes`
+  MODIFY `vote_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `events`
@@ -954,11 +968,11 @@ ALTER TABLE `course_review_comment_helpful_votes`
   ADD CONSTRAINT `course_review_comment_helpful_votes_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `course_review_helpful_votes`
+-- Constraints for table `course_review_votes`
 --
-ALTER TABLE `course_review_helpful_votes`
-  ADD CONSTRAINT `course_review_helpful_votes_ibfk_1` FOREIGN KEY (`review_id`) REFERENCES `course_reviews` (`review_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `course_review_helpful_votes_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+ALTER TABLE `course_review_votes`
+  ADD CONSTRAINT `course_review_votes_ibfk_1` FOREIGN KEY (`review_id`) REFERENCES `course_reviews` (`review_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `course_review_votes_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `events`

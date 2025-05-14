@@ -63,18 +63,14 @@ if (isset($_SESSION['user_id'])) {
                 <div class="flex flex-col sm:flex-row justify-between items-center mb-8">
                     <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 sm:mb-0">Student Marketplace</h1>
                     
-                    <?php
-                    if($is_auth){
-                        echo '
-                    <button class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition duration-300 flex items-center">
+                   
+                    <button onclick="handleListItem()" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition duration-300 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
                         List Item
                     </button>
-                    ';
-                    }
-                    ?>
+                   
                 </div>
 
                 <div class="mb-8 p-6 bg-white rounded-xl shadow-lg">
@@ -263,9 +259,16 @@ if (isset($_SESSION['user_id'])) {
 </div>
 
 <?php include 'footer.php'; ?>
+  <script defer>
+    function handleListItem() {
+      const isAuth = <?php echo $is_auth ? 'true' : 'false'; ?>;
+      if (isAuth) {
+        window.location.href = 'list_item.php';
+      } else {
+        window.location.href = 'login.php';
+      }
+    }
+  </script>
 
-<script>
-    // Any specific JS for the student marketplace page can go here
-</script>
 </body>
 </html>

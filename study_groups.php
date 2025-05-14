@@ -1,4 +1,4 @@
-<?php 
+<?php
 // study_groups.php
 include 'header.php'; // This will start the session via header.php
 
@@ -33,7 +33,7 @@ if (isset($_SESSION['user_id'])) {
                                 Course Reviews
                             </a>
                         </li>
-                        <li>
+                         <li>
                             <a href="course_notes.php" class="flex items-center text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 p-3 rounded-lg transition duration-300">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-3"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
                                 Course Notes
@@ -64,48 +64,52 @@ if (isset($_SESSION['user_id'])) {
             <div class="w-full md:w-3/4 lg:w-4/5">
                 <div class="flex flex-col sm:flex-row justify-between items-center mb-8">
                     <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 sm:mb-0">Study Groups</h1>
-
-                        <button id="createStudyGroupBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition duration-300 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                            </svg>
-                            Create Study Group
-                        </button>
-                    
+                    <?php if ($is_auth): ?>
+                    <button id="createStudyGroupBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition duration-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Create Study Group
+                    </button>
+                    <?php endif; ?>
                 </div>
 
                 <div class="mb-8 p-6 bg-white rounded-xl shadow-lg">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                         <div class="md:col-span-1">
-                            <label for="search-groups" class="block text-sm font-medium text-gray-700 mb-1">Search study groups...</label>
+                            <label for="search-groups" class="block text-sm font-medium text-gray-700 mb-1">Search current page...</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-400">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                                     </svg>
                                 </div>
-                                <input type="search" id="search-groups" class="w-full p-2 pl-10 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" placeholder="Course name, subject...">
+                                <input type="search" id="search-groups" class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" placeholder="Title, description, subject...">
                             </div>
                         </div>
                         <div>
-                            <label for="group-subject-filter" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                            <select id="group-subject-filter" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="">All Subjects</option>
+                            <label for="group-subject-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Subject (current page)</label>
+                            <select id="group-subject-filter" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="">All Subjects on Page</option>
                                 </select>
                         </div>
                         <div>
-                            <label for="group-sort" class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
-                            <select id="group-sort" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="recent">Most Recent</option>
-                                <option value="members">Most Members</option>
-                                <option value="alphabetical">Alphabetical (A-Z)</option>
+                            <label for="group-sort" class="block text-sm font-medium text-gray-700 mb-1">Sort By (current page)</label>
+                            <select id="group-sort" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="recent">Most Recent (API Default)</option>
+                                <option value="members_desc">Most Members</option>
+                                <option value="members_asc">Fewest Members</option>
+                                <option value="alphabetical_asc">Alphabetical (A-Z)</option>
+                                <option value="alphabetical_desc">Alphabetical (Z-A)</option>
+                                <option value="next_meeting_asc">By Schedule</option>
                             </select>
                         </div>
                     </div>
+                     <p class="text-xs text-gray-500 mt-3 italic">Note: Search, filter, and sort operations apply only to the groups currently visible on this page.</p>
                 </div>
 
                 <div id="studyGroupsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <p id="loadingMessage" class="col-span-full text-center text-gray-500">Loading study groups...</p>
+                    <p id="loadingMessage" class="col-span-full text-center text-gray-500 py-10">Loading study groups...</p>
                 </div>
 
                 <div id="paginationContainer" class="mt-12 flex justify-center items-center space-x-2">
@@ -122,172 +126,320 @@ document.addEventListener('DOMContentLoaded', function() {
     const studyGroupsContainer = document.getElementById('studyGroupsContainer');
     const paginationContainer = document.getElementById('paginationContainer');
     const loadingMessage = document.getElementById('loadingMessage');
-    let currentPage = 1;
+    const searchInput = document.getElementById('search-groups');
+    const subjectFilter = document.getElementById('group-subject-filter');
+    const sortSelect = document.getElementById('group-sort');
+    const createStudyGroupBtn = document.getElementById('createStudyGroupBtn');
 
-    // Define the color sequence
+    let apiCurrentPage = 1; // Page to request from the API
+    let currentSearch = '';
+    let currentSubject = '';
+    let currentSort = 'recent';
+    let searchDebounceTimeout;
+
+    let currentApiPageGroups = []; // Stores the raw data from the API for the current page
+
     const cardColors = [
-        'bg-blue-50', 'bg-green-50', 'bg-sky-50', 
-        'bg-yellow-50', 'bg-purple-50', 'bg-red-50'
+        'bg-blue-50', 'bg-green-50', 'bg-sky-50',
+        'bg-yellow-50', 'bg-purple-50', 'bg-pink-50'
     ];
-    const subjectColors = [
+    const baseSubjectColors = [
         'bg-blue-500', 'bg-green-500', 'bg-sky-500',
-        'bg-yellow-500', 'bg-purple-500', 'bg-red-500'
+        'bg-yellow-500', 'bg-purple-500', 'bg-pink-500',
+        'bg-red-500', 'bg-teal-500', 'bg-orange-500'
     ];
+    let subjectToColorMap = {};
+    let nextColorIndex = 0;
+
+    function escapeHTML(str) {
+        if (str === null || str === undefined) return '';
+        return str.toString().replace(/[&<>"']/g, function (match) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[match];
+        });
+    }
+
+    function getSubjectTagColor(subject) {
+        const safeSubject = subject ? escapeHTML(subject) : 'General';
+        if (!subjectToColorMap[safeSubject]) {
+            subjectToColorMap[safeSubject] = baseSubjectColors[nextColorIndex % baseSubjectColors.length];
+            nextColorIndex++;
+        }
+        return subjectToColorMap[safeSubject];
+    }
+
+    function fetchDepartments() {
+        fetch('api/v1/get_courses_for_filter.php?fetch_type=departments') // From your existing setup
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status} (departments)`);
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success' && data.departments && Array.isArray(data.departments)) {
+                    populateSubjectFilter(data.departments);
+                } else {
+                    console.error('Error/invalid format fetching departments:', data.error || 'No departments array');
+                    subjectFilter.disabled = true;
+                }
+            })
+            .catch(error => {
+                console.error('Fetch Error (Departments):', error);
+                subjectFilter.innerHTML = '<option value="">Error loading subjects</option>';
+                subjectFilter.disabled = true;
+            });
+    }
+
+    function populateSubjectFilter(departments) {
+        subjectFilter.length = 1; // Keep "All Subjects on Page"
+        departments.forEach(dept => {
+            if(dept) {
+                const option = document.createElement('option');
+                option.value = escapeHTML(dept); // Value should be the actual department name
+                option.textContent = escapeHTML(dept);
+                subjectFilter.appendChild(option);
+            }
+        });
+        subjectFilter.disabled = false;
+    }
+
+    // This function processes (filters/sorts) and then renders the groups
+    function processAndRenderGroups(groupsToProcess) {
+        let processedGroups = [...groupsToProcess]; // Copy to avoid modifying original page data
+
+        // 1. Apply Search Filter (client-side)
+        if (currentSearch) {
+            const searchTermLower = currentSearch.toLowerCase();
+            processedGroups = processedGroups.filter(group =>
+                (group.title && group.title.toLowerCase().includes(searchTermLower)) ||
+                (group.description && group.description.toLowerCase().includes(searchTermLower)) ||
+                (group.subject && group.subject.toLowerCase().includes(searchTermLower)) // 'subject' is department from API
+            );
+        }
+
+        // 2. Apply Subject Filter (client-side)
+        if (currentSubject) {
+            processedGroups = processedGroups.filter(group => group.subject === currentSubject);
+        }
+
+        // 3. Apply Sort (client-side)
+        // Your API sorts by 'created_at DESC' (recent) by default.
+        // Other sorts are client-side on the current page's data.
+        switch (currentSort) {
+            case 'members_desc':
+                processedGroups.sort((a, b) => (parseInt(b.members_count) || 0) - (parseInt(a.members_count) || 0));
+                break;
+            case 'members_asc':
+                processedGroups.sort((a, b) => (parseInt(a.members_count) || 0) - (parseInt(b.members_count) || 0));
+                break;
+            case 'alphabetical_asc':
+                processedGroups.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+                break;
+            case 'alphabetical_desc':
+                processedGroups.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
+                break;
+            case 'next_meeting_asc':
+                // Your API 'next_meeting' is "day_schedule • start_time_formatted"
+                // For proper sorting, we need to parse this or use raw components.
+                // The API provides `day_schedule` and `start_time` (raw time like "09:00:00")
+                const dayOrder = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", null, ""]; // Handle missing days
+                processedGroups.sort((a, b) => {
+                    const dayA = a.day_schedule || "";
+                    const dayB = b.day_schedule || "";
+                    const dayAIndex = dayOrder.indexOf(dayA);
+                    const dayBIndex = dayOrder.indexOf(dayB);
+
+                    if (dayAIndex !== dayBIndex) {
+                        return dayAIndex - dayBIndex;
+                    }
+                    // Then by start time
+                    const timeA = a.start_time || "23:59:59"; // Raw time from API
+                    const timeB = b.start_time || "23:59:59";
+                    return timeA.localeCompare(timeB);
+                });
+                break;
+            case 'recent': // API default order for the page
+            default:
+                // No client-side re-sort needed if data is fresh from API for 'recent'.
+                // If a user selected 'recent' after another client-side sort, it would revert to original order *of that page load*.
+                // The `groupsToProcess` is already in the API's 'recent' order for this page.
+                // To ensure it's always in that order if 'recent' is chosen after another sort, we might need to store original indices or re-copy from currentApiPageGroups.
+                // For simplicity, if it's `recent`, we process directly from `currentApiPageGroups` (which is already a copy)
+                // If another sort was applied, and then 'recent' is chosen, the `processedGroups` would be further copied and this switch will "do nothing", preserving the order.
+                // This is fine as 'recent' is the initial state.
+                break;
+        }
+        renderStudyGroups(processedGroups);
+    }
+
 
     function fetchStudyGroups(page = 1) {
+        apiCurrentPage = page; // Update the global API page tracker
         loadingMessage.style.display = 'block';
-        studyGroupsContainer.innerHTML = ''; // Clear previous groups
+        studyGroupsContainer.innerHTML = ''; // Clear previous groups before new API call
+        paginationContainer.innerHTML = ''; // Clear old pagination
 
-        fetch(`api/v1/get_study_groups.php?page=${page}`)
+        fetch(`api/v1/get_study_groups.php?page=${apiCurrentPage}`) // Your API endpoint
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status} (study groups)`);
                 return response.json();
             })
             .then(data => {
                 loadingMessage.style.display = 'none';
-                if (data.status === 'success' && data.data.length > 0) {
-                    renderStudyGroups(data.data);
-                    renderPagination(data.pagination);
-                } else if (data.data.length === 0) {
-                    studyGroupsContainer.innerHTML = '<p class="col-span-full text-center text-gray-500">No study groups found.</p>';
-                    paginationContainer.innerHTML = ''; // Clear pagination if no results
+                if (data.status === 'success' && data.data && Array.isArray(data.data)) {
+                    currentApiPageGroups = data.data; // Store raw data for this page
+                    if (currentApiPageGroups.length === 0) {
+                        studyGroupsContainer.innerHTML = '<p class="col-span-full text-center text-gray-500 py-10">No study groups found on this page.</p>';
+                    } else {
+                        processAndRenderGroups(currentApiPageGroups); // Apply any active client-side filters/sorts
+                    }
+                    if (data.pagination) {
+                         renderPagination(data.pagination); // Render pagination based on API's overall view
+                    }
                 } else {
-                    studyGroupsContainer.innerHTML = `<p class="col-span-full text-center text-red-500">Error: ${data.error || 'Could not load study groups.'}</p>`;
+                    currentApiPageGroups = [];
+                    studyGroupsContainer.innerHTML = `<p class="col-span-full text-center text-red-500 py-10">Error: ${data.error || 'Could not load study groups.'}</p>`;
                 }
             })
             .catch(error => {
                 loadingMessage.style.display = 'none';
-                console.error('Fetch Error:', error);
-                studyGroupsContainer.innerHTML = '<p class="col-span-full text-center text-red-500">Failed to load study groups. Please try again later.</p>';
+                console.error('Fetch Error (Study Groups):', error);
+                currentApiPageGroups = [];
+                studyGroupsContainer.innerHTML = '<p class="col-span-full text-center text-red-500 py-10">Failed to load study groups. Please try again later.</p>';
             });
     }
 
- function renderStudyGroups(groups) {
-    studyGroupsContainer.innerHTML = ''; // Clear before rendering
-    groups.forEach((group, index) => {
-        const cardBgColor = cardColors[index % cardColors.length];
-        // This is the subject background color determined on the study_groups.php page
-        const subjectBgColor = subjectColors[index % subjectColors.length]; 
+    function renderStudyGroups(groupsToDisplay) {
+        studyGroupsContainer.innerHTML = ''; // Clear for fresh render
 
-        const groupCard = `
-            <div class="study-group-card ${cardBgColor} p-6 rounded-xl shadow-lg flex flex-col hover:shadow-xl transition-shadow duration-300">
-                <div class="mb-3">
-                    <span class="text-xs font-semibold inline-block py-1 px-3 uppercase rounded-full ${subjectBgColor} text-white">
-                        ${group.subject ? escapeHTML(group.subject) : 'General'}
-                    </span>
+        if (groupsToDisplay.length === 0) {
+            // Message handled by processAndRenderGroups or fetchStudyGroups if API returned empty
+            if (!currentSearch && !currentSubject) { // Only show "No study groups to display" if no filters applied and list is empty
+                 studyGroupsContainer.innerHTML = '<p class="col-span-full text-center text-gray-500 py-10">No study groups to display on this page.</p>';
+            } else if (studyGroupsContainer.innerHTML === '') { // If filters active and no results, show specific message
+                 studyGroupsContainer.innerHTML = '<p class="col-span-full text-center text-gray-500 py-10">No study groups on this page match your current filters.</p>';
+            }
+            return;
+        }
+
+        groupsToDisplay.forEach((group, index) => {
+            const cardBgColor = cardColors[index % cardColors.length];
+            // 'subject' comes from API as c.department
+            const subjectBgColor = getSubjectTagColor(group.subject);
+
+            // API already provides 'next_meeting' as "day_schedule • start_time_formatted"
+            const nextMeetingDisplay = group.next_meeting || 'Not scheduled';
+            const membersCount = parseInt(group.members_count) || 0;
+
+            const groupCard = `
+                <div class="study-group-card ${cardBgColor} p-6 rounded-xl shadow-lg flex flex-col hover:shadow-xl transition-shadow duration-300">
+                    <div class="mb-3">
+                        <span class="text-xs font-semibold inline-block py-1 px-3 uppercase rounded-full ${subjectBgColor} text-white">
+                            ${group.subject ? escapeHTML(group.subject) : 'General'}
+                        </span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2 flex-grow min-h-[2.5em]">${escapeHTML(group.title)}</h3>
+                    <p class="text-gray-700 text-sm mb-4 flex-grow min-h-[3.5em]">${escapeHTML(group.description ? group.description.substring(0, 100) : '')}${group.description && group.description.length > 100 ? '...' : ''}</p>
+                    <div class="text-xs text-gray-500 mb-1">
+                        <span class="font-medium text-gray-700">Schedule:</span> ${escapeHTML(nextMeetingDisplay)}
+                    </div>
+                    <div class="text-sm text-indigo-600 font-semibold mb-3">
+                        ${membersCount} member${membersCount !== 1 ? 's' : ''}
+                    </div>
+                    <a href="study_group_detail.php?group_id=${group.group_id}&subjectTagColor=${encodeURIComponent(subjectBgColor)}" class="mt-auto inline-block bg-indigo-500 hover:bg-indigo-600 text-white text-center font-semibold py-2 px-4 rounded-lg transition duration-300 text-sm">
+                        View Details
+                    </a>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-2 flex-grow">${escapeHTML(group.title)}</h3>
-                <p class="text-gray-700 text-sm mb-4 flex-grow">${escapeHTML(group.description.substring(0, 100))}${group.description.length > 100 ? '...' : ''}</p>
-                <div class="text-xs text-gray-600 mb-1">
-                    <span class="font-medium">Next:</span> ${escapeHTML(group.next_meeting)}
-                </div>
-                <div class="text-sm text-indigo-600 font-semibold">
-                    ${group.members_count} member${group.members_count !== 1 ? 's' : ''}
-                </div>
-                <a href="study_group_detail.php?group_id=${group.group_id}&subjectTagColor=${encodeURIComponent(subjectBgColor)}" class="mt-4 inline-block bg-indigo-500 hover:bg-indigo-600 text-white text-center font-semibold py-2 px-4 rounded-lg transition duration-300 text-sm">
-                    View Details
-                </a>
-            </div>
-        `;
-        studyGroupsContainer.insertAdjacentHTML('beforeend', groupCard);
-    });
-}
+            `;
+            studyGroupsContainer.insertAdjacentHTML('beforeend', groupCard);
+        });
+    }
 
     function renderPagination(pagination) {
-        paginationContainer.innerHTML = ''; // Clear previous pagination
-        if (pagination.totalPages <= 1) {
-            return; // No pagination needed for 0 or 1 page
-        }
+        paginationContainer.innerHTML = '';
+        if (!pagination || pagination.totalPages <= 1) return;
 
-        // Previous Button
-        let prevDisabled = pagination.currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200';
-        const prevButton = `
-            <button data-page="${pagination.currentPage - 1}" class="pagination-link p-2 rounded-md text-gray-600 ${prevDisabled}" ${pagination.currentPage === 1 ? 'disabled' : ''}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                </svg>
-            </button>
-        `;
-        paginationContainer.insertAdjacentHTML('beforeend', prevButton);
+        const buildButton = (page, text, isDisabled = false, isActive = false) => {
+            let classes = "pagination-link px-3 py-2 mx-1 rounded-md text-sm font-medium ";
+            classes += isActive ? "bg-indigo-600 text-white cursor-default" :
+                       isDisabled ? "text-gray-400 cursor-not-allowed opacity-60" :
+                       "text-gray-700 hover:bg-gray-200";
+            return `<button data-page="${page}" class="${classes}" ${isDisabled || isActive ? 'disabled' : ''}>${text}</button>`;
+        };
+        
+        paginationContainer.insertAdjacentHTML('beforeend', buildButton(pagination.currentPage - 1, '&laquo; Prev', pagination.currentPage === 1));
 
-        // Page Number Buttons (simplified: show current, +/- 1, first, last)
-        const pageRange = 2; // How many pages to show around current page
-        let pagesHtml = '';
-
-        for (let i = 1; i <= pagination.totalPages; i++) {
-            if (i === pagination.currentPage) {
-                pagesHtml += `<button data-page="${i}" class="pagination-link px-4 py-2 rounded-md bg-indigo-600 text-white font-medium" disabled>${i}</button>`;
+        const maxPagesToShow = 5; let startPage, endPage;
+        if (pagination.totalPages <= maxPagesToShow) {
+            startPage = 1; endPage = pagination.totalPages;
+        } else {
+            const maxPagesBefore = Math.floor((maxPagesToShow - 1) / 2);
+            const maxPagesAfter = Math.ceil((maxPagesToShow - 1) / 2);
+            if (pagination.currentPage <= maxPagesBefore) {
+                startPage = 1; endPage = maxPagesToShow;
+            } else if (pagination.currentPage + maxPagesAfter >= pagination.totalPages) {
+                startPage = pagination.totalPages - maxPagesToShow + 1; endPage = pagination.totalPages;
             } else {
-                 // Logic to limit number of page buttons shown
-                if (i === 1 || i === pagination.totalPages || (i >= pagination.currentPage - pageRange && i <= pagination.currentPage + pageRange)) {
-                    pagesHtml += `<button data-page="${i}" class="pagination-link px-4 py-2 rounded-md hover:bg-gray-200 text-gray-700">${i}</button>`;
-                } else if ( (i === pagination.currentPage - pageRange - 1 && i > 1) || (i === pagination.currentPage + pageRange + 1 && i < pagination.totalPages) ) {
-                     pagesHtml += `<span class="px-4 py-2 text-gray-700">...</span>`;
-                }
+                startPage = pagination.currentPage - maxPagesBefore; endPage = pagination.currentPage + maxPagesAfter;
             }
         }
-        paginationContainer.insertAdjacentHTML('beforeend', pagesHtml);
+        
+        if (startPage > 1) {
+            paginationContainer.insertAdjacentHTML('beforeend', buildButton(1, '1'));
+            if (startPage > 2) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-3 py-2 text-gray-700">...</span>`);
+        }
+        for (let i = startPage; i <= endPage; i++) {
+            paginationContainer.insertAdjacentHTML('beforeend', buildButton(i, i, false, i === pagination.currentPage));
+        }
+        if (endPage < pagination.totalPages) {
+            if (endPage < pagination.totalPages - 1) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-3 py-2 text-gray-700">...</span>`);
+            paginationContainer.insertAdjacentHTML('beforeend', buildButton(pagination.totalPages, pagination.totalPages));
+        }
+        paginationContainer.insertAdjacentHTML('beforeend', buildButton(pagination.currentPage + 1, 'Next &raquo;', pagination.currentPage === pagination.totalPages));
 
-
-        // Next Button
-        let nextDisabled = pagination.currentPage === pagination.totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200';
-        const nextButton = `
-            <button data-page="${pagination.currentPage + 1}" class="pagination-link p-2 rounded-md text-gray-600 ${nextDisabled}" ${pagination.currentPage === pagination.totalPages ? 'disabled' : ''}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-            </button>
-        `;
-        paginationContainer.insertAdjacentHTML('beforeend', nextButton);
-
-        // Add event listeners to new pagination links
         document.querySelectorAll('.pagination-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                if (this.disabled) return;
-                const page = parseInt(this.getAttribute('data-page'));
-                if (page && page !== currentPage) {
-                    currentPage = page;
-                    fetchStudyGroups(currentPage);
-                     window.scrollTo({ top: studyGroupsContainer.offsetTop - 100, behavior: 'smooth' }); // Scroll to top of groups
+                if (this.disabled || this.classList.contains('bg-indigo-600')) return;
+                const pageToFetch = parseInt(this.getAttribute('data-page'));
+                if (pageToFetch && pageToFetch !== apiCurrentPage) { // apiCurrentPage tracks the page fetched from API
+                    fetchStudyGroups(pageToFetch);
+                    const containerTop = studyGroupsContainer.getBoundingClientRect().top + window.pageYOffset - 80;
+                    window.scrollTo({ top: containerTop, behavior: 'smooth' });
                 }
             });
         });
     }
     
-    function escapeHTML(str) {
-        if (str === null || str === undefined) return '';
-        return str.toString().replace(/[&<>"']/g, function (match) {
-            return {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            }[match];
-        });
-    }
 
-    // Initial fetch
-    fetchStudyGroups(currentPage);
+    // --- Event Listeners for Filters (Apply to currentApiPageGroups) ---
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchDebounceTimeout);
+        searchDebounceTimeout = setTimeout(() => {
+            currentSearch = searchInput.value.trim();
+            processAndRenderGroups(currentApiPageGroups); // Re-process data of the current API page
+        }, 300);
+    });
 
-    // TODO: Add event listeners for search and filter elements to re-fetch study groups
-    // const searchInput = document.getElementById('search-groups');
-    // const subjectFilter = document.getElementById('group-subject-filter');
-    // const sortSelect = document.getElementById('group-sort');
-    // searchInput.addEventListener('input', () => fetchStudyGroups(1, searchInput.value, subjectFilter.value, sortSelect.value));
-    // subjectFilter.addEventListener('change', () => fetchStudyGroups(1, searchInput.value, subjectFilter.value, sortSelect.value));
-    // sortSelect.addEventListener('change', () => fetchStudyGroups(1, searchInput.value, subjectFilter.value, sortSelect.value));
+    subjectFilter.addEventListener('change', () => {
+        currentSubject = subjectFilter.value;
+        processAndRenderGroups(currentApiPageGroups); // Re-process data of the current API page
+    });
 
-    // Create Study Group Button redirect (if button exists)
-    const createStudyGroupBtn = document.getElementById('createStudyGroupBtn');
+    sortSelect.addEventListener('change', () => {
+        currentSort = sortSelect.value;
+        processAndRenderGroups(currentApiPageGroups); // Re-process data of the current API page
+    });
+
+    // --- Create Study Group Button ---
     if(createStudyGroupBtn) {
         createStudyGroupBtn.addEventListener('click', function() {
-            window.location.href = 'create_study_group.php'; 
+            window.location.href = 'create_study_group.php';
         });
     }
+
+    // --- Initial Page Load Actions ---
+    fetchDepartments();
+    fetchStudyGroups(apiCurrentPage); // Fetch initial page (page 1)
+
 });
 </script>
 </body>
