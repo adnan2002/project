@@ -103,30 +103,38 @@ if (isset($_GET['subjectTagColor'])) {
 <?php include 'footer.php'; ?>
 
 <script>
+// This is part of your <script> tag in study_group_detail.php
+
 document.addEventListener('DOMContentLoaded', function() {
-    const groupId = <?php echo json_encode($group_id); ?>;
-    const errorMessage = <?php echo json_encode($error_message); ?>;
+    // These are passed from PHP
+    const groupIdFromPHP = <?php echo json_encode($group_id); ?>;
+    const initialErrorMessage = <?php echo json_encode($error_message); ?>;
     const passedSubjectTagColor = <?php echo json_encode($passed_subject_tag_color); ?>; 
     const isLoggedIn = <?php echo json_encode(isset($_SESSION['user_id'])); ?>; 
+    // Note: currentUserId will now come EXCLUSIVELY from the API response for consistency
 
-    
+    console.log("DOMContentLoaded - Initial PHP Data:", {
+        groupIdFromPHP,
+        initialErrorMessage,
+        passedSubjectTagColor,
+        isLoggedIn
+    });
 
     const groupContentContainer = document.getElementById('groupContentContainer');
     const loadingMessageDetail = document.getElementById('loadingMessageDetail');
+    const studyGroupDetailContent = document.getElementById('studyGroupDetailContent');
 
+    if (!groupContentContainer) console.error("Critical Error: groupContentContainer not found!");
+    if (!loadingMessageDetail) console.warn("Warning: loadingMessageDetail not found!");
+    if (!studyGroupDetailContent) console.warn("Warning: studyGroupDetailContent (for errors) not found!");
+
+
+    // --- Helper: Default Colors & Functions (keep your existing helper functions) ---
     const defaultSubjectTagColors = { 
-        'MATHEMATICS': 'bg-blue-500',
-        'BIOLOGY': 'bg-green-500',
-        'COMPUTER SCIENCE': 'bg-sky-500',
-        'CHEMISTRY': 'bg-yellow-500',
-        'PSYCHOLOGY': 'bg-purple-500',
-        'PHYSICS': 'bg-red-500',
-        'ENGINEERING': 'bg-orange-500',
-        'LITERATURE': 'bg-pink-500',
-        'HISTORY': 'bg-teal-500',
-        'BUSINESS': 'bg-gray-500',
-        'OTHER': 'bg-slate-500',
-        'GENERAL': 'bg-lime-500'
+        'MATHEMATICS': 'bg-blue-500', 'BIOLOGY': 'bg-green-500', 'COMPUTER SCIENCE': 'bg-sky-500',
+        'CHEMISTRY': 'bg-yellow-500', 'PSYCHOLOGY': 'bg-purple-500', 'PHYSICS': 'bg-red-500',
+        'ENGINEERING': 'bg-orange-500', 'LITERATURE': 'bg-pink-500', 'HISTORY': 'bg-teal-500',
+        'BUSINESS': 'bg-gray-500', 'OTHER': 'bg-slate-500', 'GENERAL': 'bg-lime-500'
     };
     const avatarColors = [
         'bg-indigo-500', 'bg-pink-500', 'bg-green-500', 'bg-yellow-500', 
@@ -135,31 +143,23 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
 
     function formatTimeAgoJS(timestampStr) {
-    if (!timestampStr) return 'Some time ago';
-
-    const date = new Date(timestampStr.replace(/-/g, "/")); // Ensure cross-browser compatibility for date parsing
-    const now = new Date();
-    const seconds = Math.round((now.getTime() - date.getTime()) / 1000);
-
-    if (seconds < 5) return 'Just now'; // Immediate posts
-
-    let interval = Math.floor(seconds / 31536000); // year
-    if (interval >= 1) return interval + ' year' + (interval > 1 ? 's' : '') + ' ago';
-
-    interval = Math.floor(seconds / 2592000); // month
-    if (interval >= 1) return interval + ' month' + (interval > 1 ? 's' : '') + ' ago';
-
-    interval = Math.floor(seconds / 86400); // day
-    if (interval >= 1) return interval + ' day' + (interval > 1 ? 's' : '') + ' ago';
-
-    interval = Math.floor(seconds / 3600); // hour
-    if (interval >= 1) return interval + ' hour' + (interval > 1 ? 's' : '') + ' ago';
-
-    interval = Math.floor(seconds / 60); // minute
-    if (interval >= 1) return interval + ' minute' + (interval > 1 ? 's' : '') + ' ago';
-
-    return Math.floor(seconds) + ' second' + (seconds !== 1 ? 's' : '') + ' ago';
-}
+        if (!timestampStr) return 'Some time ago';
+        const date = new Date(timestampStr.replace(/-/g, "/")); 
+        const now = new Date();
+        const seconds = Math.round((now.getTime() - date.getTime()) / 1000);
+        if (seconds < 5) return 'Just now';
+        let interval = Math.floor(seconds / 31536000); 
+        if (interval >= 1) return interval + ' year' + (interval > 1 ? 's' : '') + ' ago';
+        interval = Math.floor(seconds / 2592000); 
+        if (interval >= 1) return interval + ' month' + (interval > 1 ? 's' : '') + ' ago';
+        interval = Math.floor(seconds / 86400); 
+        if (interval >= 1) return interval + ' day' + (interval > 1 ? 's' : '') + ' ago';
+        interval = Math.floor(seconds / 3600); 
+        if (interval >= 1) return interval + ' hour' + (interval > 1 ? 's' : '') + ' ago';
+        interval = Math.floor(seconds / 60); 
+        if (interval >= 1) return interval + ' minute' + (interval > 1 ? 's' : '') + ' ago';
+        return Math.floor(seconds) + ' second' + (seconds !== 1 ? 's' : '') + ' ago';
+    }
 
     function getInitials(firstName, lastName) {
         const firstInitial = firstName ? firstName.charAt(0).toUpperCase() : '';
@@ -174,76 +174,127 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    if (groupId && !errorMessage) {
-        fetch(`api/v1/get_study_group_detail.php?group_id=${groupId}`)
+    function displayPageError(message) {
+        console.error("Displaying Page Error:", message);
+        if (loadingMessageDetail) loadingMessageDetail.style.display = 'none';
+        if (groupContentContainer) groupContentContainer.classList.add('hidden');
+        const errorContainer = studyGroupDetailContent || document.body; 
+        errorContainer.innerHTML = `<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                                        <strong class="font-bold">Error:</strong>
+                                        <span class="block sm:inline">${escapeHTML(message)}</span>
+                                    </div>`;
+    }
+    
+    if (initialErrorMessage) {
+        console.log("Initial page error from PHP:", initialErrorMessage);
+        displayPageError(initialErrorMessage);
+    } else if (groupIdFromPHP) {
+        console.log(`Fetching details for groupIdFromPHP: ${groupIdFromPHP}`);
+        fetch(`api/v1/get_study_group_detail.php?group_id=${groupIdFromPHP}`)
             .then(response => {
+                console.log("Fetch response status:", response.status);
                 if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.error || `HTTP error! Status: ${response.status}`) });
+                    return response.json().then(err => { 
+                        console.error("API Error Response (get_study_group_detail):", err);
+                        throw new Error(err.error || `HTTP error! Status: ${response.status}`);
+                    });
                 }
                 return response.json();
             })
             .then(data => {
-                loadingMessageDetail.style.display = 'none';
-                if (data.status === 'success') {
-                    renderGroupDetails(data);
-                    groupContentContainer.classList.remove('hidden');
+                console.log("Full API Response (get_study_group_detail):", data); 
+                if (loadingMessageDetail) loadingMessageDetail.style.display = 'none';
+                
+                if (data.status === 'success' && data.group_details) {
+                    console.log("API call successful, proceeding to renderGroupDetails.");
+                    renderGroupDetails(data); 
+                    if (groupContentContainer) groupContentContainer.classList.remove('hidden');
                 } else {
-                    groupContentContainer.innerHTML = `<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
-                        <strong class="font-bold">Error:</strong>
-                        <span class="block sm:inline">${escapeHTML(data.error || 'Could not load study group details.')}</span></div>`;
-                    groupContentContainer.classList.remove('hidden');
+                    console.error("API call status not 'success' or group_details missing. API Data:", data);
+                    displayPageError(data.error || 'Could not load study group details from API.');
                 }
             })
             .catch(error => {
-                loadingMessageDetail.style.display = 'none';
-                console.error('Fetch Error:', error);
-                groupContentContainer.innerHTML = `<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
-                    <strong class="font-bold">Error:</strong>
-                    <span class="block sm:inline">Failed to load study group details: ${escapeHTML(error.message)}</span></div>`;
-                groupContentContainer.classList.remove('hidden');
+                console.error('Fetch Group Detail Error (catch block):', error);
+                displayPageError(`Failed to load study group details: ${escapeHTML(error.message)}`);
             });
-    } else if (!errorMessage) { 
-        loadingMessageDetail.style.display = 'none';
-        document.getElementById('studyGroupDetailContent').innerHTML = `<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
-            <strong class="font-bold">Error:</strong>
-            <span class="block sm:inline">No Study Group ID provided.</span></div>`;
+    } else {
+        console.log("No groupIdFromPHP and no initialErrorMessage.");
+        displayPageError("No Study Group ID provided.");
     }
 
-        function renderGroupDetails(apiResponse) {
+    function renderGroupDetails(apiResponse) {
+        console.log("renderGroupDetails called with apiResponse:", apiResponse);
+
+        if (!groupContentContainer || !apiResponse || !apiResponse.group_details) {
+            console.error("Render Error: Missing groupContentContainer or apiResponse or apiResponse.group_details.", {
+                groupContentContainerExists: !!groupContentContainer,
+                apiResponseExists: !!apiResponse,
+                groupDetailsExists: !!(apiResponse && apiResponse.group_details)
+            });
+            displayPageError("Failed to render group details due to missing critical data or page elements.");
+            return;
+        }
+
         const group = apiResponse.group_details;
-        const members = apiResponse.members || []; // Ensure members is always an array
-        const comments = apiResponse.comments;
+        const members = apiResponse.members || []; 
+        const comments = apiResponse.comments || [];
         const isCurrentUserMember = apiResponse.is_current_user_member;
-        const currentUserId = apiResponse.current_user_id;
+        
+        const currentUserId = apiResponse.current_user_id; 
         const currentUserFirstName = apiResponse.current_user_first_name;
         const currentUserLastName = apiResponse.current_user_last_name;
 
-        const subjectColor = passedSubjectTagColor || defaultSubjectTagColors[group.subject_department?.toUpperCase()] || 'bg-gray-500';
+        console.log("Data for rendering:", {
+            group, membersLength: members.length, commentsLength: comments.length,
+            isCurrentUserMember, currentUserId, currentUserFirstName, currentUserLastName
+        });
+
+        // --- DEBUGGING LOGS for Leader Identification ---
+        console.log("--- Leader Check ---");
+        console.log("isLoggedIn (from PHP session via JS):", isLoggedIn);
+        console.log("group.leader_id (from API):", group.leader_id, "(type:", typeof group.leader_id, ")");
+        console.log("currentUserId (from API):", currentUserId, "(type:", typeof currentUserId, ")");
+        
+        const numericLeaderId = parseInt(group.leader_id, 10);
+        const numericCurrentUserId = parseInt(currentUserId, 10);
+        console.log("Parsed IDs - numericLeaderId:", numericLeaderId, "numericCurrentUserId:", numericCurrentUserId);
+        const isLeader = isLoggedIn && !isNaN(numericLeaderId) && !isNaN(numericCurrentUserId) && numericCurrentUserId === numericLeaderId;
+        console.log("Is current user the leader?", isLeader);
+        // --- End DEBUGGING LOGS ---
+
+
+        const subjectDept = group.subject_department || 'GENERAL';
+        const subjectColor = passedSubjectTagColor || defaultSubjectTagColors[subjectDept.toUpperCase()] || defaultSubjectTagColors['GENERAL'];
         const creatorName = `${escapeHTML(group.leader_first_name)} ${escapeHTML(group.leader_last_name)}`;
         
         let joinButtonHTML = '';
-        let editDeleteButtonsHTML = '';
+        let editDeleteButtonsHTML = ''; 
 
-        if (isLoggedIn && currentUserId === group.leader_id) {
-            // User is the leader
+        if (isLeader) {
+            console.log("User IS identified as the group leader. Setting up leader buttons.");
+            editDeleteButtonsHTML = `
+                <button id="editStudyGroupBtn" data-group-id="${group.group_id}" title="Edit Group" class="p-2 text-gray-700 hover:text-indigo-600 transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                </button>
+                <button id="deleteStudyGroupBtn" data-group-id="${group.group_id}" title="Delete Group" class="p-2 text-gray-700 hover:text-red-600 transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                </button>
+            `;
             joinButtonHTML = `
                 <button id="joinGroupButton" 
-                        class="w-full bg-gray-400 text-white font-bold py-3 px-4 rounded-lg shadow-md flex items-center justify-center text-lg cursor-not-allowed" 
+                        class="w-full bg-slate-400 text-white font-semibold py-3 px-4 rounded-lg shadow-md flex items-center justify-center text-lg cursor-not-allowed" 
                         disabled title="You are the group leader">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
                     Group Leader
                 </button>`;
-            editDeleteButtonsHTML = `
-                <button title="Edit Group (Coming Soon)" class="p-2 text-gray-700 hover:text-indigo-600 cursor-pointer"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg></button>
-                <button title="Delete Group (Coming Soon)" class="p-2 text-gray-700 hover:text-red-600 cursor-pointer"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg></button>
-            `;
         } else if (isLoggedIn) {
-            // User is logged in, not the leader
+            console.log("User IS logged in, but NOT the group leader.");
             const buttonText = isCurrentUserMember ? 'Leave Group' : 'Join Group';
             const buttonColor = isCurrentUserMember ? 'bg-red-600 hover:bg-red-700' : 'bg-indigo-600 hover:bg-indigo-700';
             const buttonIcon = isCurrentUserMember 
                 ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H21" /></svg>`
                 : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>`;
-            
             joinButtonHTML = `
                 <button id="joinGroupButton" 
                         class="w-full ${buttonColor} text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 flex items-center justify-center text-lg" 
@@ -252,129 +303,185 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${buttonIcon}
                     <span id="joinGroupButtonText">${buttonText}</span>
                 </button>`;
-            editDeleteButtonsHTML = `
-                <button title="Edit Group (Feature not active)" class="p-2 text-gray-400 cursor-not-allowed"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg></button>
-                <button title="Delete Group (Feature not active)" class="p-2 text-gray-400 cursor-not-allowed"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg></button>
-            `;
         } else {
-             // User not logged in
-             joinButtonHTML = `
+            console.log("User is NOT logged in.");
+            joinButtonHTML = `
                 <a href="login.php" 
-                        class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 flex items-center justify-center text-lg" 
-                        title="Login to join group">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                    Join Group
+                   class="w-full bg-slate-500 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 flex items-center justify-center text-lg" 
+                   title="Login to join group">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H2.25" /></svg>
+                    Login to Join
                 </a>`;
-            editDeleteButtonsHTML = `
-                <button title="Edit Group (Feature not active)" class="p-2 text-gray-400 cursor-not-allowed"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg></button>
-                <button title="Delete Group (Feature not active)" class="p-2 text-gray-400 cursor-not-allowed"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg></button>
-            `;
         }
 
         const membersCountDisplayHTML = `<p id="membersCountDisplay" class="text-sm text-gray-600 text-center mt-2">${group.members_count} member(s) / ${group.max_members ? escapeHTML(group.max_members) + ' spots' : 'Unlimited spots'}</p>`;
         
- let groupHTML = `
-      <div class="flex flex-col sm:flex-row justify-between items-start mb-6 pb-6 border-b border-gray-200">
-        <div>
-          <span class="text-xs font-semibold inline-block py-1 px-3 uppercase rounded-full ${escapeHTML(subjectColor)} text-white mb-2">
-            ${escapeHTML(group.subject_department) || 'General'}
-          </span>
-          <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mt-1">${escapeHTML(group.title)}</h1>
-          <p class="text-sm text-gray-500 mt-1">${escapeHTML(group.course_code)} &bull; Created by ${creatorName}</p>
-        </div>
-        <div class="flex space-x-2 mt-4 sm:mt-0">
-          ${editDeleteButtonsHTML}
-        </div>
-      </div>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div class="lg:col-span-2 space-y-8">
-          <div>
-            <h2 class="text-2xl font-semibold text-gray-800 mb-3">About this group</h2>
-            <div class="prose max-w-none text-gray-700 leading-relaxed">${group.description.replace(/\n/g, '<br>')}</div>
-          </div>
-          <div>
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Meeting Information</h2>
-            <div class="space-y-3 text-gray-700">
-              <div class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0 mt-1"><path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.145l.002-.001L10 18.41l.002.001.282.144a5.74 5.74 0 00.28.145l.018.008.006.003.003.001.002.001c.198.086.307.066.307.066s.11-.02.308.066l.002.001.006.003.018.008a5.741 5.741 0 00.281-.145l.002-.001L10 18.41l.002.001.282.144a5.74 5.74 0 00.28.145l.018.008.006.003.003.001ZM10 4a4 4 0 100 8 4 4 0 000-8zm0 6a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><div><strong>Location:</strong> ${escapeHTML(group.location) || 'Not specified'}</div></div>
-              <div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0"><path fill-rule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5h10.5a.75.75 0 000-1.5H4.75a.75.75 0 000 1.5z" clip-rule="evenodd" /></svg><div><strong>Day:</strong> ${escapeHTML(group.day_schedule)}</div></div>
-              <div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd" /></svg><div><strong>Time:</strong> ${escapeHTML(group.meeting_time_range)}</div></div>
+        console.log("Generated editDeleteButtonsHTML:", editDeleteButtonsHTML);
+        console.log("Generated joinButtonHTML:", joinButtonHTML.substring(0, 100) + "..."); // Log part of it
+
+        let groupHTML = `
+            <div class="flex flex-col sm:flex-row justify-between items-start mb-6 pb-6 border-b border-gray-200">
+                <div>
+                    <span class="text-xs font-semibold inline-block py-1 px-3 uppercase rounded-full ${escapeHTML(subjectColor)} text-white mb-2">
+                        ${escapeHTML(subjectDept)}
+                    </span>
+                    <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mt-1">${escapeHTML(group.title)}</h1>
+                    <p class="text-sm text-gray-500 mt-1">${escapeHTML(group.course_code)} &bull; Created by ${creatorName}</p>
+                </div>
+                <div class="flex space-x-2 mt-4 sm:mt-0">
+                    ${editDeleteButtonsHTML}
+                </div>
             </div>
-          </div>
-          <div class="pt-8 border-t border-gray-200">
-            <h3 class="text-2xl font-semibold text-gray-800 mb-4">Comments (${comments.length})</h3>
-            <div id="commentsContainer" class="space-y-6 mb-6">
-              ${comments.length > 0 ? comments.map((comment, index) => `
-                <div class="flex items-start"><div class="w-10 h-10 ${avatarColors[index % avatarColors.length]} text-white flex items-center justify-center rounded-full text-lg font-bold mr-3 flex-shrink-0">${getInitials(comment.commenter_first_name, comment.commenter_last_name)}</div><div class="bg-gray-100 p-4 rounded-lg flex-grow"><div class="flex justify-between items-center mb-1"><span class="font-semibold text-gray-800 text-sm">${escapeHTML(comment.commenter_first_name)} ${escapeHTML(comment.commenter_last_name)}</span><span class="text-xs text-gray-500">${formatTimeAgoJS(comment.comment_created_at)}</span></div><p class="text-gray-700 text-sm">${escapeHTML(comment.comment_text)}</p><div class="mt-2 text-xs"><button class="text-indigo-600 hover:underline helpful-vote-button" data-comment-id="${comment.comment_id}">Helpful (${comment.helpful_count})</button></div></div></div>
-              `).join('') : '<p class="text-gray-500">No comments yet. Be the first to comment!</p>'}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-8">
+                    <div>
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-3">About this group</h2>
+                        <div class="prose max-w-none text-gray-700 leading-relaxed">${(group.description || '').replace(/\n/g, '<br>')}</div>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Meeting Information</h2>
+                        <div class="space-y-3 text-gray-700">
+                            <div class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0 mt-1"><path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.145l.002-.001L10 18.41l.002.001.282.144a5.74 5.74 0 00.28.145l.018.008.006.003.003.001.002.001c.198.086.307.066.307.066s.11-.02.308.066l.002.001.006.003.018.008a5.741 5.741 0 00.281-.145l.002-.001L10 18.41l.002.001.282.144a5.74 5.74 0 00.28.145l.018.008.006.003.003.001ZM10 4a4 4 0 100 8 4 4 0 000-8zm0 6a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><div><strong>Location:</strong> ${escapeHTML(group.location) || 'Not specified'}</div></div>
+                            <div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0"><path fill-rule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5h10.5a.75.75 0 000-1.5H4.75a.75.75 0 000 1.5z" clip-rule="evenodd" /></svg><div><strong>Day:</strong> ${escapeHTML(group.day_schedule)}</div></div>
+                            <div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd" /></svg><div><strong>Time:</strong> ${escapeHTML(group.meeting_time_range)}</div></div>
+                        </div>
+                    </div>
+                    <div class="pt-8 border-t border-gray-200">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Comments (${comments.length})</h3>
+                        <div id="commentsContainer" class="space-y-6 mb-6">
+                            ${comments.length > 0 ? comments.map((comment, index) => `
+                                <div class="flex items-start"><div class="w-10 h-10 ${avatarColors[index % avatarColors.length]} text-white flex items-center justify-center rounded-full text-lg font-bold mr-3 flex-shrink-0">${getInitials(comment.commenter_first_name, comment.commenter_last_name)}</div><div class="bg-gray-100 p-4 rounded-lg flex-grow"><div class="flex justify-between items-center mb-1"><span class="font-semibold text-gray-800 text-sm">${escapeHTML(comment.commenter_first_name)} ${escapeHTML(comment.commenter_last_name)}</span><span class="text-xs text-gray-500">${formatTimeAgoJS(comment.comment_created_at)}</span></div><p class="text-gray-700 text-sm">${escapeHTML(comment.comment_text)}</p><div class="mt-2 text-xs"><button class="text-indigo-600 hover:underline helpful-vote-button" data-comment-id="${comment.comment_id}">Helpful (${comment.helpful_count || 0})</button></div></div></div>
+                            `).join('') : '<p class="text-gray-500">No comments yet. Be the first to comment!</p>'}
+                        </div>
+                        <div>
+                            <h4 class="text-md font-semibold text-gray-800 mb-2">Add a comment...</h4>
+                            <form id="addCommentForm" method="POST"><input type="hidden" name="group_id" value="${group.group_id}"><textarea name="comment_text" id="commentTextArea" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 mb-3" placeholder="Write your comment..." required></textarea><div class="text-right"><button type="submit" id="postCommentButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition duration-300">Post Comment</button></div></form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="lg:col-span-1 space-y-8">
+                    <div>
+                        ${joinButtonHTML}
+                        ${membersCountDisplayHTML}
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
+                        <h3 id="membersListHeading" class="text-xl font-semibold text-gray-800 mb-4">Members (${members.length})</h3>
+                        <ul class="space-y-3" id="membersList">
+                            ${members.length > 0 ? members.map((member, index) => `
+                                <li class="flex items-center" data-user-id="${member.user_id}">
+                                    <div class="w-8 h-8 ${avatarColors[index % avatarColors.length]} text-white flex items-center justify-center rounded-full text-sm font-bold mr-3">${getInitials(member.first_name, member.last_name)}</div>
+                                    <span class="text-gray-700 text-sm">${escapeHTML(member.first_name)} ${escapeHTML(member.last_name)}</span>
+                                    ${parseInt(member.user_id, 10) === numericLeaderId ? '<span class="ml-2 text-xs text-indigo-600 font-semibold">(Leader)</span>' : ''}
+                                </li>
+                            `).join('') : '<p class="text-gray-500 text-sm" id="noMembersMessage">No members yet.</p>'}
+                        </ul>
+                        ${members.length > 8 ? '<a href="#" id="viewAllMembersLink" class="text-sm text-indigo-600 hover:underline mt-3 inline-block">View all members</a>' : ''}
+                    </div>
+                </div>
             </div>
-            <div>
-              <h4 class="text-md font-semibold text-gray-800 mb-2">Add a comment...</h4>
-              <form id="addCommentForm" method="POST"><input type="hidden" name="group_id" value="${group.group_id}"><textarea name="comment_text" id="commentTextArea" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 mb-3" placeholder="Write your comment..." required></textarea><div class="text-right"><button type="submit" id="postCommentButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition duration-300">Post Comment</button></div></form>
-            </div>
-          </div>
-        </div>
+        `;
+        if (groupContentContainer) {
+            groupContentContainer.innerHTML = groupHTML;
+        }
         
-        <div class="lg:col-span-1 space-y-8">
-          <div>
-           ${joinButtonHTML}
-           ${membersCountDisplayHTML}
-          </div>
-          <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
-            <h3 id="membersListHeading" class="text-xl font-semibold text-gray-800 mb-4">Members (${members.length})</h3>
-            <ul class="space-y-3" id="membersList">
-              ${members.length > 0 ? members.map((member, index) => `
-                <li class="flex items-center" data-user-id="${member.user_id}">
-                  <div class="w-8 h-8 ${avatarColors[index % avatarColors.length]} text-white flex items-center justify-center rounded-full text-sm font-bold mr-3">${getInitials(member.first_name, member.last_name)}</div>
-                  <span class="text-gray-700 text-sm">${escapeHTML(member.first_name)} ${escapeHTML(member.last_name)}</span>
-                  ${member.user_id === group.leader_id ? '<span class="ml-2 text-xs text-indigo-600 font-semibold">(Leader)</span>' : ''}
-                </li>
-              `).join('') : '<p class="text-gray-500 text-sm" id="noMembersMessage">No members yet (besides the leader).</p>'}
-            </ul>
-            ${members.length > 8 ? '<a href="#" id="viewAllMembersLink" class="text-sm text-indigo-600 hover:underline mt-3 inline-block">View all members</a>' : ''}
-          </div>
-        </div>
-      </div>
-    `;
-    groupContentContainer.innerHTML = groupHTML;
+        console.log("Calling listener attachment functions...");
+        addCommentFormListener(); 
+        addHelpfulVoteListeners();
+        addJoinLeaveButtonListener(
+            currentUserId, 
+            currentUserFirstName, 
+            currentUserLastName,
+            apiResponse 
+        ); 
+        addEditDeleteListeners();
+    }     
     
-    addCommentFormListener(); 
-    addHelpfulVoteListeners();
-    // Pass necessary info from apiResponse for dynamic list updates
-    addJoinLeaveButtonListener(
-      currentUserId, 
-      currentUserFirstName, // From session, via get_study_group_detail API
-      currentUserLastName  // From session, via get_study_group_detail API
-    ); 
-  }    
-  
-  
-  function addJoinLeaveButtonListener(loggedInUserId, loggedInUserFirstName, loggedInUserLastName) {
-        const joinGroupButton = document.getElementById('joinGroupButton');
-        
-        // If button is a link (user not logged in) or disabled (user is leader), do nothing
-        if (!joinGroupButton || joinGroupButton.tagName === 'A' || joinGroupButton.disabled) {
-            return;
+    function addEditDeleteListeners() {
+        const editBtn = document.getElementById('editStudyGroupBtn');
+        const deleteBtn = document.getElementById('deleteStudyGroupBtn');
+        console.log("addEditDeleteListeners: editBtn found?", !!editBtn, "deleteBtn found?", !!deleteBtn);
+
+        if (editBtn) {
+            editBtn.addEventListener('click', function() {
+                const groupId = this.dataset.groupId;
+                console.log("Edit button clicked for groupId:", groupId);
+                if (groupId) {
+                    window.location.href = `edit_study_group.php?group_id=${groupId}`;
+                } else {
+                    console.error("Edit button: groupId missing from data attribute.");
+                    alert("Error: Could not determine which group to edit.");
+                }
+            });
         }
 
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                const groupId = this.dataset.groupId;
+                console.log("Delete button clicked for groupId:", groupId);
+                if (!groupId) {
+                    console.error("Delete button: groupId missing from data attribute.");
+                    alert("Error: Could not determine which group to delete.");
+                    return;
+                }
+                if (confirm('Are you sure you want to delete this study group? This action cannot be undone.')) {
+                    console.log("Delete confirmed for groupId:", groupId);
+                    this.disabled = true; 
+                    const originalIconHTML = this.innerHTML; 
+                    this.innerHTML = `<svg class="animate-spin h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+                    fetch(`api/v1/delete_study_group.php?group_id=${groupId}`, { 
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => response.json().then(data => ({ ok: response.ok, status: response.status, body: data })))
+                    .then(result => {
+                        console.log("Delete API response:", result);
+                        if (result.ok && result.body.status === 'success') {
+                            alert(result.body.message); 
+                            window.location.href = 'study_groups.php'; 
+                        } else {
+                            alert('Error deleting group: ' + (result.body.message || `Unknown error. Status: ${result.status}`));
+                            this.disabled = false; 
+                            this.innerHTML = originalIconHTML; 
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Delete Fetch Error:', error);
+                        alert('Failed to delete study group. Network error or invalid server response.');
+                        this.disabled = false; 
+                        this.innerHTML = originalIconHTML; 
+                    });
+                } else {
+                    console.log("Delete cancelled for groupId:", groupId);
+                }
+            });
+        }
+    }
+
+    function addJoinLeaveButtonListener(loggedInUserId, loggedInUserFirstName, loggedInUserLastName, fullApiResponse) {
+        const joinGroupButton = document.getElementById('joinGroupButton');
+        console.log("addJoinLeaveButtonListener: joinGroupButton found?", !!joinGroupButton);
+        if (!joinGroupButton || joinGroupButton.tagName === 'A' || joinGroupButton.disabled) {
+            console.log("Join/Leave button not active or not found, or is for leader.");
+            return;
+        }
         joinGroupButton.addEventListener('click', function() {
-            if (!isLoggedIn) { // Double check, though button should be a link if not logged in
+            const groupId = this.dataset.groupId;
+            let isCurrentlyMember = this.dataset.isMember === 'true';
+            console.log("Join/Leave button clicked. GroupId:", groupId, "Is Member:", isCurrentlyMember);
+            // ... (rest of your join/leave logic) ...
+            if (!isLoggedIn) { 
                 alert('You must be logged in to join or leave the group.');
-                window.location.href = 'login.php'; // Redirect to login
+                window.location.href = 'login.php'; 
                 return;
             }
-
-            const groupId = this.dataset.groupId;
-            let isMember = this.dataset.isMember === 'true';
-            const action = isMember ? 'leave' : 'join';
+            const action = isCurrentlyMember ? 'leave' : 'join';
             const endpoint = action === 'join' ? 'api/v1/join_study_group.php' : 'api/v1/leave_study_group.php';
-            
             const buttonTextSpan = this.querySelector('#joinGroupButtonText');
-            const originalButtonTextContent = buttonTextSpan ? buttonTextSpan.textContent : (isMember ? 'Leave Group' : 'Join Group');
-            const originalButtonClasses = Array.from(this.classList); // Store original classes for full revert on error
-
+            const originalButtonTextContent = buttonTextSpan ? buttonTextSpan.textContent : (isCurrentlyMember ? 'Leave Group' : 'Join Group');
             this.disabled = true;
             if(buttonTextSpan) buttonTextSpan.textContent = 'Processing...';
-
+            else this.textContent = 'Processing... '; 
             fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -382,111 +489,96 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json().then(data => ({ ok: response.ok, status: response.status, body: data })))
             .then(result => {
+                console.log("Join/Leave API response:", result);
                 if (result.ok && result.body.status === 'success') {
-                    isMember = (action === 'join');
-                    this.dataset.isMember = isMember;
-
-                    // Update Button: Text, Color, Icon
-                    if(buttonTextSpan) buttonTextSpan.textContent = isMember ? 'Leave Group' : 'Join Group';
+                    const nowMember = (action === 'join');
+                    this.dataset.isMember = nowMember.toString();
+                    if(buttonTextSpan) buttonTextSpan.textContent = nowMember ? 'Leave Group' : 'Join Group';
+                    else this.textContent = nowMember ? 'Leave Group' : 'Join Group';
                     this.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'bg-red-600', 'hover:bg-red-700');
-                    this.classList.add(isMember ? 'bg-red-600' : 'bg-indigo-600');
-                    this.classList.add(isMember ? 'hover:bg-red-700' : 'hover:bg-indigo-700');
-                    
-                    const newIconSVG = isMember 
+                    this.classList.add(nowMember ? 'bg-red-600' : 'bg-indigo-600');
+                    this.classList.add(nowMember ? 'hover:bg-red-700' : 'hover:bg-indigo-700');
+                    const newIconSVG = nowMember 
                         ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H21" /></svg>`
                         : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>`;
                     const existingIcon = this.querySelector('svg');
-                    if (existingIcon) existingIcon.insertAdjacentHTML('beforebegin', newIconSVG); existingIcon.remove();
-
-
-                    // Update Members Count Display (under button)
+                    if (existingIcon && buttonTextSpan) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = newIconSVG;
+                        existingIcon.parentNode.replaceChild(tempDiv.firstChild, existingIcon);
+                    } else if (buttonTextSpan) {
+                         buttonTextSpan.insertAdjacentHTML('beforebegin', newIconSVG);
+                    }
                     const membersCountDisplay = document.getElementById('membersCountDisplay');
-                    const groupDataElement = document.getElementById('groupContentContainer'); // Parent for max_members
                     let maxMembersText = 'Unlimited spots';
-                    if (groupDataElement) { // Find the p tag to extract max_members
-                        const pElement = groupDataElement.querySelector('div > p.text-sm.text-gray-600.text-center.mt-2');
-                        if(pElement && pElement.textContent.includes('/')) {
-                            const parts = pElement.textContent.split('/');
-                            if(parts.length > 1) maxMembersText = parts[1].trim();
-                        }
+                    if (fullApiResponse.group_details && fullApiResponse.group_details.max_members) {
+                        maxMembersText = `${escapeHTML(fullApiResponse.group_details.max_members)} spots`;
                     }
-                    if (membersCountDisplay) {
-                        membersCountDisplay.textContent = `${result.body.new_member_count} member(s) / ${maxMembersText}`;
+                    if (membersCountDisplay && result.body.new_member_count !== undefined) {
+                         membersCountDisplay.textContent = `${result.body.new_member_count} member(s) / ${maxMembersText}`;
                     }
-                    
-                    // Update Members List (ul#membersList) and its Heading (h3#membersListHeading)
                     const membersListUL = document.getElementById('membersList');
                     const membersListHeading = document.getElementById('membersListHeading');
-                    let currentListedMemberElements = membersListUL.querySelectorAll('li[data-user-id]');
-
-                    if (action === 'join') {
-                        // Use details of the user who just joined (the current logged-in user)
-                        // The join API should ideally return the full member_info (user_id, first_name, last_name)
-                        // For now, using loggedInUserFirstName and loggedInUserLastName passed to this function
-                        const newMemberInfo = result.body.member_info || { user_id: loggedInUserId, first_name: loggedInUserFirstName, last_name: loggedInUserLastName };
-                        
-                        const noMembersMessage = document.getElementById('noMembersMessage');
-                        if (noMembersMessage) noMembersMessage.remove();
-
-                        const memberExistsInList = membersListUL.querySelector(`li[data-user-id="${newMemberInfo.user_id}"]`);
-                        if (!memberExistsInList) {
-                             const avatarColorIndex = currentListedMemberElements.length % avatarColors.length;
-                             const memberLi = `
-                                <li class="flex items-center" data-user-id="${newMemberInfo.user_id}">
-                                    <div class="w-8 h-8 ${avatarColors[avatarColorIndex]} text-white flex items-center justify-center rounded-full text-sm font-bold mr-3">${getInitials(newMemberInfo.first_name, newMemberInfo.last_name)}</div>
-                                    <span class="text-gray-700 text-sm">${escapeHTML(newMemberInfo.first_name)} ${escapeHTML(newMemberInfo.last_name)}</span>
-                                </li>`;
-                            membersListUL.insertAdjacentHTML('beforeend', memberLi);
+                    let currentListedMemberElements = membersListUL ? membersListUL.querySelectorAll('li[data-user-id]') : [];
+                    if (membersListUL) {
+                        if (action === 'join') {
+                            const newMemberInfo = result.body.member_info || { user_id: loggedInUserId, first_name: loggedInUserFirstName, last_name: loggedInUserLastName };
+                            const noMembersMessage = document.getElementById('noMembersMessage');
+                            if (noMembersMessage) noMembersMessage.remove();
+                            const memberExistsInList = membersListUL.querySelector(`li[data-user-id="${newMemberInfo.user_id}"]`);
+                            if (!memberExistsInList) {
+                                currentListedMemberElements = membersListUL.querySelectorAll('li[data-user-id]');
+                                const avatarColorIndex = currentListedMemberElements.length % avatarColors.length;
+                                const memberLi = `
+                                    <li class="flex items-center" data-user-id="${newMemberInfo.user_id}">
+                                        <div class="w-8 h-8 ${avatarColors[avatarColorIndex]} text-white flex items-center justify-center rounded-full text-sm font-bold mr-3">${getInitials(newMemberInfo.first_name, newMemberInfo.last_name)}</div>
+                                        <span class="text-gray-700 text-sm">${escapeHTML(newMemberInfo.first_name)} ${escapeHTML(newMemberInfo.last_name)}</span>
+                                        ${parseInt(newMemberInfo.user_id,10) === parseInt(fullApiResponse.group_details.leader_id,10) ? '<span class="ml-2 text-xs text-indigo-600 font-semibold">(Leader)</span>' : ''}
+                                    </li>`;
+                                membersListUL.insertAdjacentHTML('beforeend', memberLi);
+                            }
+                        } else if (action === 'leave' && result.body.user_id_left !== undefined) {
+                            const userLiToRemove = membersListUL.querySelector(`li[data-user-id="${result.body.user_id_left}"]`);
+                            if (userLiToRemove) userLiToRemove.remove();
+                            currentListedMemberElements = membersListUL.querySelectorAll('li[data-user-id]'); 
+                            if (currentListedMemberElements.length === 0 && !document.getElementById('noMembersMessage')) {
+                               membersListUL.innerHTML = '<p class="text-gray-500 text-sm" id="noMembersMessage">No members yet.</p>';
+                            }
                         }
-                    } else if (action === 'leave') {
-                        const userLiToRemove = membersListUL.querySelector(`li[data-user-id="${result.body.user_id_left}"]`);
-                        if (userLiToRemove) {
-                            userLiToRemove.remove();
-                        }
-                        currentListedMemberElements = membersListUL.querySelectorAll('li[data-user-id]'); // Re-query
-                        if (currentListedMemberElements.length === 0 && !document.getElementById('noMembersMessage')) {
-                           membersListUL.innerHTML = '<p class="text-gray-500 text-sm" id="noMembersMessage">No members yet (besides the leader).</p>';
-                        }
+                        currentListedMemberElements = membersListUL.querySelectorAll('li[data-user-id]');
+                        if(membersListHeading) membersListHeading.textContent = `Members (${currentListedMemberElements.length})`;
                     }
-                    // Update the count in the heading after add/remove
-                    currentListedMemberElements = membersListUL.querySelectorAll('li[data-user-id]');
-                    if(membersListHeading) membersListHeading.textContent = `Members (${currentListedMemberElements.length})`;
-
                 } else {
                     alert('Error: ' + (result.body.error || 'Could not complete action.'));
-                    if(buttonTextSpan) buttonTextSpan.textContent = originalButtonTextContent; // Revert text on error
+                    if(buttonTextSpan) buttonTextSpan.textContent = originalButtonTextContent; 
                 }
             })
             .catch(error => {
                 console.error('Join/Leave Group Error:', error);
                 alert('Failed to process request. Please try again.');
-                if(buttonTextSpan) buttonTextSpan.textContent = originalButtonTextContent; // Revert text on error
+                if(buttonTextSpan) buttonTextSpan.textContent = originalButtonTextContent; 
             })
-            .finally(() => {
-                this.disabled = false;
-            });
+            .finally(() => { this.disabled = false; });
         });
     }
 
-
-
-
-
     function addCommentFormListener() {
         const commentForm = document.getElementById('addCommentForm');
+        console.log("addCommentFormListener: commentForm found?", !!commentForm);
         if (commentForm) {
             commentForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                const commentText = document.getElementById('commentTextArea').value.trim();
-                const currentGroupId = this.elements['group_id'].value;
+                // ... (rest of your comment form logic with console logs for key variables) ...
+                const commentTextArea = document.getElementById('commentTextArea');
+                const commentText = commentTextArea ? commentTextArea.value.trim() : "";
+                const currentGroupIdInput = this.elements['group_id'];
+                const currentGroupId = currentGroupIdInput ? currentGroupIdInput.value : null;
+                console.log("Comment submit. GroupId:", currentGroupId, "Text:", commentText, "isLoggedIn:", isLoggedIn);
                 if (!commentText) { alert('Comment cannot be empty.'); return; }
-                const isLoggedIn = <?php echo json_encode(isset($_SESSION['user_id'])); ?>; 
-                if (!isLoggedIn) { alert('You must be logged in to post a comment.'); return; }
-
+                if (!currentGroupId) { alert('Error: Group ID missing for comment.'); return; }
+                if (!isLoggedIn) { alert('You must be logged in to post a comment.'); window.location.href = 'login.php'; return; }
                 const postCommentButton = document.getElementById('postCommentButton');
-                postCommentButton.disabled = true;
-                postCommentButton.textContent = 'Posting...';
-
+                if(postCommentButton) { postCommentButton.disabled = true; postCommentButton.textContent = 'Posting...'; }
                 fetch('api/v1/add_study_group_comment.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -494,36 +586,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(response => response.json().then(data => ({ status: response.status, ok: response.ok, body: data })))
                 .then(result => {
+                    console.log("Add comment API response:", result);
                     if (result.ok && result.body.status === 'success') {
-                        alert('Comment posted successfully!');
-                        document.getElementById('commentTextArea').value = '';
+                        if(commentTextArea) commentTextArea.value = '';
                         const newComment = result.body.comment;
                         if (newComment) {
-                             const commentsContainer = document.getElementById('commentsContainer');
-                             const noCommentsP = commentsContainer.querySelector('p.text-gray-500');
-                             if (noCommentsP) noCommentsP.remove();
-                             const commentHtml = `<div class="flex items-start"><div class="w-10 h-10 ${avatarColors[Math.floor(Math.random() * avatarColors.length)]} text-white flex items-center justify-center rounded-full text-lg font-bold mr-3 flex-shrink-0">${getInitials(newComment.commenter_first_name, newComment.commenter_last_name)}</div><div class="bg-gray-100 p-4 rounded-lg flex-grow"><div class="flex justify-between items-center mb-1"><span class="font-semibold text-gray-800 text-sm">${escapeHTML(newComment.commenter_first_name)} ${escapeHTML(newComment.commenter_last_name)}</span><span class="text-xs text-gray-500">${formatTimeAgoJS(newComment.comment_created_at)}</span></div><p class="text-gray-700 text-sm">${escapeHTML(newComment.comment_text)}</p><div class="mt-2 text-xs"><button class="text-indigo-600 hover:underline helpful-vote-button" data-comment-id="${newComment.comment_id}">Helpful (${newComment.helpful_count})</button></div></div></div>`;
-                            commentsContainer.insertAdjacentHTML('afterbegin', commentHtml);
-                            addHelpfulVoteListeners();
+                            const commentsContainer = document.getElementById('commentsContainer');
+                            const commentsHeading = document.querySelector('#groupContentContainer h3.text-2xl.font-semibold.text-gray-800.mb-4');
+                            if (commentsContainer) {
+                                const noCommentsP = commentsContainer.querySelector('p.text-gray-500');
+                                if (noCommentsP) noCommentsP.remove();
+                                const commentHtml = `<div class="flex items-start"><div class="w-10 h-10 ${avatarColors[Math.floor(Math.random() * avatarColors.length)]} text-white flex items-center justify-center rounded-full text-lg font-bold mr-3 flex-shrink-0">${getInitials(newComment.commenter_first_name, newComment.commenter_last_name)}</div><div class="bg-gray-100 p-4 rounded-lg flex-grow"><div class="flex justify-between items-center mb-1"><span class="font-semibold text-gray-800 text-sm">${escapeHTML(newComment.commenter_first_name)} ${escapeHTML(newComment.commenter_last_name)}</span><span class="text-xs text-gray-500">${formatTimeAgoJS(newComment.comment_created_at)}</span></div><p class="text-gray-700 text-sm">${escapeHTML(newComment.comment_text)}</p><div class="mt-2 text-xs"><button class="text-indigo-600 hover:underline helpful-vote-button" data-comment-id="${newComment.comment_id}">Helpful (${newComment.helpful_count || 0})</button></div></div></div>`;
+                                commentsContainer.insertAdjacentHTML('afterbegin', commentHtml);
+                                if(commentsHeading){
+                                     const currentCount = Array.from(commentsContainer.children).filter(child => child.tagName === 'DIV' && child.classList.contains('flex')).length;
+                                     commentsHeading.textContent = `Comments (${currentCount})`;
+                                }
+                                addHelpfulVoteListeners();
+                            }
                         }
                     } else {
                         alert('Error posting comment: ' + (result.body.error || 'Unknown error'));
                     }
                 })
                 .catch(error => { console.error('Comment post error:', error); alert('Failed to post comment. Please try again.'); })
-                .finally(() => { postCommentButton.disabled = false; postCommentButton.textContent = 'Post Comment'; });
+                .finally(() => { 
+                    if(postCommentButton) { postCommentButton.disabled = false; postCommentButton.textContent = 'Post Comment'; }
+                });
             });
         }
     }
 
     function addHelpfulVoteListeners() {
-        document.querySelectorAll('.helpful-vote-button').forEach(button => {
-            const newButton = button.cloneNode(true);
-            button.parentNode.replaceChild(newButton, button);
-            newButton.addEventListener('click', function() {
+        const buttons = document.querySelectorAll('.helpful-vote-button');
+        console.log(`addHelpfulVoteListeners: Found ${buttons.length} helpful vote buttons.`);
+        buttons.forEach(button => {
+            if (button.dataset.listenerAttached === 'true') return;
+            button.dataset.listenerAttached = 'true';
+            button.addEventListener('click', function() {
                 const commentId = this.dataset.commentId;
-                const isLoggedIn = <?php echo json_encode(isset($_SESSION['user_id'])); ?>;
-                if (!isLoggedIn) { alert('You must be logged in to vote.'); return; }
+                console.log("Helpful vote clicked for commentId:", commentId);
+                // ... (rest of your helpful vote logic) ...
+                if (!isLoggedIn) { alert('You must be logged in to vote.'); window.location.href = 'login.php'; return; }
+                const originalButtonText = this.textContent;
+                this.disabled = true;
                 fetch('api/v1/vote_study_group_comment.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -531,17 +637,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(response => response.json())
                 .then(result => {
+                    console.log("Vote API response:", result);
                     if (result.status === 'success') {
                         this.textContent = `Helpful (${result.new_helpful_count})`;
                     } else {
                         alert('Error: ' + result.error);
+                        this.textContent = originalButtonText;
                     }
                 })
-                .catch(error => { console.error('Vote error:', error); alert('Failed to process vote.'); });
+                .catch(error => { 
+                    console.error('Vote error:', error); 
+                    alert('Failed to process vote.'); 
+                    this.textContent = originalButtonText;
+                })
+                .finally(() => { this.disabled = false; });
             });
         });
     }
 });
+
 </script>
 </body>
 </html>
